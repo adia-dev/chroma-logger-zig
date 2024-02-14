@@ -42,7 +42,7 @@ jobs:
         if: steps.changes.outputs.changes == 'true'
         run: |
           git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-          git config --global user.email "your-email@example.com" # Make sure to use a valid email
+          git config --global user.email "inspector@zig.zon"
           git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
 
