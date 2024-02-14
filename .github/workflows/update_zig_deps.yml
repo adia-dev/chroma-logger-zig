@@ -1,5 +1,5 @@
 name: Update build.zig.zon deps
- 
+
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
@@ -11,7 +11,6 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
 
 jobs:
   build:
@@ -30,15 +29,26 @@ jobs:
       - name: Zig fetch chroma dep
         run: zig fetch --save https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.0.tar.gz
 
-      # Commit and push build.zig.zon
-      - name: GIT commit build.zig.zon file
-        if: github.event_name == 'push' && env.is-auto-commit == false
+      - name: Check for changes
+        id: changes
         run: |
-          git config --global user.name  "${{ env.CI_COMMIT_AUTHOR }}"
-          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
           git add build.zig.zon
-          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            echo "::set-output name=changes::false"
+          else
+            echo "Changes detected."
+            echo "::set-output name=changes::true"
+          fi
+
+      - name: Commit and push if changes exist
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "your-email@example.com" # Make sure to use a valid email
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
+        shell: /usr/bin/bash -e {0}
 
       - name: Set environment variable "is-auto-commit"
         if: github.event.commits[0].message == env.CI_COMMIT_MESSAGE && github.event.commits[0].author.name == env.CI_COMMIT_AUTHOR
