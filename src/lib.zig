@@ -1,6 +1,6 @@
 const std = @import("std");
 const Time = @import("./time/time.zig").Time;
-const chroma = @import("chroma-zig");
+const chroma = @import("chroma");
 
 pub fn log(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), comptime message: []const u8, args: anytype) void {
     _ = scope;
@@ -18,7 +18,8 @@ pub fn log(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), c
     const formatted_timestamp = comptime chroma.format("{247}{d:0>4}-{d:0>2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2} {reset}");
     nosuspend stderr.print(formatted_timestamp, .{ time.year, time.month, time.day, time.hour, time.minute, time.second }) catch return;
     nosuspend stderr.print("{s} ", .{level_to_string(level)}) catch return;
-    nosuspend stderr.print(message ++ "\n", args) catch return;
+    const formatted_message = comptime chroma.format(message);
+    nosuspend stderr.print(formatted_message ++ "\n", args) catch return;
 }
 
 fn level_to_string(comptime level: std.log.Level) []const u8 {

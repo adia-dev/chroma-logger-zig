@@ -1,6 +1,6 @@
 const std = @import("std");
 const Logger = @import("lib.zig");
-const chroma = @import("chroma-zig");
+const chroma = @import("chroma");
 
 const User = struct {
     name: []const u8,
@@ -25,7 +25,7 @@ pub fn main() !void {
     std.log.debug("Debugging the application start process", .{});
 
     // Info log - generally useful information to log (service start-up, configuration assumptions, etc.)
-    std.log.info("Application successfully started", .{});
+    std.log.info("Application {green}successfully{reset} started", .{});
 
     // Warn log - something unexpected happened, but the application is still running as expected
     std.log.warn("The configuration file 'config.json' was not found, using defaults", .{});
@@ -51,9 +51,9 @@ pub fn main() !void {
         std.time.sleep(one_second_in_nano); // Sleep for 1 second
 
         if (bob.level == 9) {
-            std.log.warn(chroma.format("{221}{s} is about to reach level 10 soon !"), .{bob.name});
+            std.log.warn("{221}{s} is about to reach level 10 soon !", .{bob.name});
         } else if (bob.level == 10) {
-            std.log.info(chroma.format("{cyan}{s} reached level 10 !"), .{bob.name});
+            std.log.info("{cyan}{s} reached level 10 !", .{bob.name});
         }
     }
 }

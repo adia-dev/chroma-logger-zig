@@ -15,12 +15,13 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const chroma = b.dependency("chroma-zig", .{});
+    const chroma = b.dependency("chroma", .{});
 
-    _ = b.addModule("chroma-logger-zig", .{ .root_source_file = .{ .path = "src/lib.zig" } });
+    const m = b.addModule("chroma-logger", .{ .root_source_file = .{ .path = "src/lib.zig" } });
+    m.addImport("chroma", chroma.module("chroma"));
 
     const lib = b.addStaticLibrary(.{
-        .name = "chroma-logger-zig",
+        .name = "chroma-logger",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = .{ .path = "src/lib.zig" },
@@ -28,19 +29,21 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    lib.root_module.addImport("chroma", chroma.module("chroma"));
+
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
     // running `zig build`).
     b.installArtifact(lib);
 
     const exe = b.addExecutable(.{
-        .name = "chroma-logger-zig",
+        .name = "chroma-logger",
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
 
-    exe.root_module.addImport("chroma-zig", chroma.module("chroma-zig"));
+    exe.root_module.addImport("chroma", chroma.module("chroma"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
