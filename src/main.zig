@@ -28,7 +28,7 @@ pub fn main() !void {
     std.log.info("Application {green}successfully{reset} started", .{});
 
     // Warn log - something unexpected happened, but the application is still running as expected
-    std.log.warn("The configuration file 'config.json' was not found, using defaults", .{});
+    std.log.warn("The configuration file {241}`config.json`{reset} was not found, using defaults", .{});
 
     // Error log - a serious problem that indicates the application might not be able to continue running
     std.log.err("Failed to connect to the database, terminating application", .{});
