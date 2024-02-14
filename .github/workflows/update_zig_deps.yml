@@ -14,10 +14,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     env:
       CI_COMMIT_MESSAGE: Updated build.zig.zon
       CI_COMMIT_AUTHOR: 🕵️ Detective build.zig.zon
@@ -48,7 +45,6 @@ jobs:
           git config --global user.email "your-email@example.com" # Make sure to use a valid email
           git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
-        shell: /usr/bin/bash -e {0}
 
       - name: Set environment variable "is-auto-commit"
         if: github.event.commits[0].message == env.CI_COMMIT_MESSAGE && github.event.commits[0].author.name == env.CI_COMMIT_AUTHOR
