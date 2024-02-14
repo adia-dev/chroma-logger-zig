@@ -23,6 +23,26 @@ Chroma Logger is an advanced logging library for Zig projects, designed to bring
 - **Flexible Configuration**: Control log levels and formatting with ease, allowing for detailed debugging sessions or streamlined production logs.
 - **Seamless Integration**: Designed to work effortlessly within the Zig ecosystem, integrating directly into your Zig build system.
 
+The logger comes in different styles, each with its own use case:
+
+- `Time based`: Logs are colorized based on the time of day.
+<figure>
+  <img src="./assets/chroma-logger.png" alt="Time based logger" style="width:100%">
+    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.timeBasedLog</figcaption>
+</figure>
+
+- `Level based`: Logs are colorized based on the log level.
+<figure>
+  <img src="./assets/level-logger.png" alt="Default based logger" style="width:100%">
+    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.log<figcaption>
+</figure>
+
+- `Default based`: Logs are displayed in the default color.
+<figure>
+  <img src="./assets/default-logger.png" alt="Default based logger" style="width:100%">
+    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.defaultLog<figcaption>
+</figure>
+
 ## Getting Started
 
 ### Prerequisites
@@ -87,6 +107,11 @@ In your application:
 ```zig
 const std = @import("std");
 const ChromaLogger = @import("chroma-logger");
+
+// LogFns:
+// - ChromaLogger.defaultLog
+// - ChromaLogger.timeBasedLog
+// - ChromaLogger.log
 
 pub const std_options: std.Options = .{
     .logFn = ChromaLogger.log,

@@ -18,7 +18,7 @@ const User = struct {
     }
 };
 
-pub const std_options: std.Options = .{ .log_level = .debug, .logFn = Logger.log };
+pub const std_options: std.Options = .{ .log_level = .debug, .logFn = Logger.defaultLog };
 
 pub fn main() !void {
     // Debug log - typically used for detailed information useful for debugging
