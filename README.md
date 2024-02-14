@@ -99,6 +99,10 @@ pub fn main() !void {
 }
 ```
 
+This example demonstrates how to use Chroma Logger to log messages in various colors and formats. The `log` function from the `ChromaLogger` package is used to log messages, and the `std.log` package is used to log messages in the standard Zig format.
+
+For more examples and usage, please refer to the [Use Chroma Logger](https://github.com/adia-dev/use-chroma-logger) repository.
+
 ## Contributing
 
 We welcome contributions of all kinds from the community! Whether it's adding new features, improving documentation, or fixing bugs, please feel free to make a pull request.
