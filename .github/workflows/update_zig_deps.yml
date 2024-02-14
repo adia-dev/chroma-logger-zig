@@ -23,9 +23,21 @@ jobs:
         with:
           token: ${{ secrets.ZIG_BUILD_ZIG_ZON_GIT_ACCESS_TOKEN }}
       - uses: goto-bus-stop/setup-zig@v2
-      - name: Zig fetch chroma dep
-        run: zig fetch --save https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.0.tar.gz
-
+      - name: Fetch the latest release of chroma
+        id: fetch_latest_release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ZIG_BUILD_ZIG_ZON_GIT_ACCESS_TOKEN }}
+          script: |
+            const repo = {
+              owner: 'adia-dev',
+              repo: 'chroma-zig',
+            };
+            const response = await github.rest.repos.getLatestRelease(repo);
+            return response.data.tag_name;
+          result-encoding: string
+      - name: Zig fetch chroma-zig dependency
+        run: zig fetch --save https://github.com/adia-dev/chroma-zig/archive/refs/tags/${{ steps.fetch_latest_release.outputs.result }}.tar.gz
       - name: Check for changes
         id: changes
         run: |
@@ -57,14 +69,3 @@ jobs:
         run: echo "last commit author = ${{ github.event.commits[0].author.name }}"
       - name: Display environment variable "is-auto-commit"
         run: echo "is-auto-commit=${{ env.is-auto-commit }}"
-
-      # I am cooking
-      - name: Display the dependencies 
-        id: vars
-        run: |
-          echo 'var<<EOF' >> $GITHUB_OUTPUT
-          echo "deps=$(cat build.zig.zon)" >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-
-      - name: Test output
-        run: echo ${{ steps.vars.outputs.deps }}
