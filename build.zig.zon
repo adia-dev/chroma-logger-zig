@@ -14,12 +14,7 @@
     // `zig build --fetch` can be used to fetch all dependencies of a package, recursively.
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
-    .dependencies = .{
-        .chroma = .{
-            .url = "https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.0.tar.gz",
-            .hash = "invalid has",
-        },
-    },
+    .dependencies = .{},
     .paths = .{
         // This makes *all* files, recursively, included in this package. It is generally
         // better to explicitly list the files and directories instead, to insure that
