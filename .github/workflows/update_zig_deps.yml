@@ -1,0 +1,49 @@
+name: Update build.zig.zon deps
+
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - "main"
+  pull_request:
+    - "main"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.os}}
+    env:
+      CI_COMMIT_MESSAGE: Updated build.zig.zon
+      CI_COMMIT_AUTHOR: 🕵️ Detective build.zig.zon
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.ZIG_BUILD_ZIG_ZON_GIT_ACCESS_TOKEN }}
+      - uses: goto-bus-stop/setup-zig@v2
+      - name: Zig fetch chroma dep
+        run: zig fetch --save https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.0.tar.gz
+
+      # Commit and push build.zig.zon
+      - name: GIT commit build.zig.zon file
+        if: github.event_name == 'push' && env.is-auto-commit == false
+        run: |
+          git config --global user.name  "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          git add build.zig.zon
+          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
+
+      - name: Set environment variable "is-auto-commit"
+        if: github.event.commits[0].message == env.CI_COMMIT_MESSAGE && github.event.commits[0].author.name == env.CI_COMMIT_AUTHOR
+        run: echo "is-auto-commit=true" >> $GITHUB_ENV
+
+      # Debug
+      - name: Display Github event variable "github.event.commits[0].message"
+        run: echo "last commit message = ${{ github.event.commits[0].message }}"
+      - name: Display Github event variable "github.event.commits[0].author.name"
+        run: echo "last commit author = ${{ github.event.commits[0].author.name }}"
+      - name: Display environment variable "is-auto-commit"
+        run: echo "is-auto-commit=${{ env.is-auto-commit }}"
