@@ -2,12 +2,12 @@
     .name = "chroma-logger",
     // This is a [Semantic Version](https://semver.org/).
     // In a future version of Zig it will be used for package deduplication.
-    .version = "0.0.0",
+    .version = "0.1.2",
 
     // This field is optional.
     // This is currently advisory only; Zig does not yet do anything
     // with this value.
-    //.minimum_zig_version = "0.11.0",
+    .minimum_zig_version = "0.13.0",
 
     // This field is optional.
     // Each dependency must either provide a `url` and `hash`, or a `path`.
@@ -16,8 +16,8 @@
     // internet connectivity.
     .dependencies = .{
         .chroma = .{
-            .url = "https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.1.tar.gz",
-            .hash = "1220f9f75b601bca13fd6627da7a649ff730f9006383c8470d9257cffbd76c07de7b",
+            .url = "https://github.com/adia-dev/chroma-zig/archive/refs/tags/v0.1.2.tar.gz",
+            .hash = "12209a8a991121bba3b21f31d275588690dc7c0d7fa9c361fd892e782dd88e0fb2ba",
         },
     },
     .paths = .{

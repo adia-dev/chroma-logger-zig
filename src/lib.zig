@@ -13,8 +13,8 @@ pub fn timeBasedLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLi
     // TODO: make the offset configurable
     const time = Time.from_unix_timestamp(timestamp + @as(i64, offset_in_seconds));
 
-    std.debug.getStderrMutex().lock();
-    defer std.debug.getStderrMutex().unlock();
+    std.debug.lockStdErr();
+    defer std.debug.unlockStdErr();
     const stderr = std.io.getStdErr().writer();
 
     // TODO: search if it is possible to merge these into a single print call
@@ -29,8 +29,8 @@ pub fn defaultLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLite
     _ = level;
     _ = scope;
 
-    std.debug.getStderrMutex().lock();
-    defer std.debug.getStderrMutex().unlock();
+    std.debug.lockStdErr();
+    defer std.debug.unlockStdErr();
     const stderr = std.io.getStdErr().writer();
 
     const formatted_message = comptime chroma.format(message);
@@ -40,8 +40,8 @@ pub fn defaultLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLite
 pub fn log(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), comptime message: []const u8, args: anytype) void {
     _ = scope;
 
-    std.debug.getStderrMutex().lock();
-    defer std.debug.getStderrMutex().unlock();
+    std.debug.lockStdErr();
+    defer std.debug.unlockStdErr();
     const stderr = std.io.getStdErr().writer();
 
     // TODO: search if it is possible to merge these into a single print call
