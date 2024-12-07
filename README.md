@@ -4,7 +4,6 @@ Chroma Logger is an advanced logging library for Zig projects, designed to bring
 
 <img width="760" alt="chroma-logger" src="https://github.com/user-attachments/assets/30b21918-6f07-4415-baac-c5ed14676f56">
 
-
 ## Table of Contents
 
 - [Features](#features)
@@ -126,8 +125,6 @@ pub fn main() !void {
 ```
 
 This example demonstrates how to use Chroma Logger to log messages in various colors and formats. The `log` function from the `ChromaLogger` package is used to log messages, and the `std.log` package is used to log messages in the standard Zig format.
-
-For more examples and usage, please refer to the [Use Chroma Logger](https://github.com/adia-dev/use-chroma-logger) repository.
 
 ## Contributing
 
