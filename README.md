@@ -2,7 +2,8 @@
 
 Chroma Logger is an advanced logging library for Zig projects, designed to bring color and clarity to your application's logging output. Utilizing the Chroma library for colorized output, Chroma Logger enhances the visibility and readability of logs, making debugging and monitoring a breeze.
 
-![Chroma Logger Example](./assets/chroma-logger.png)
+<img width="760" alt="chroma-logger" src="https://github.com/user-attachments/assets/30b21918-6f07-4415-baac-c5ed14676f56">
+
 
 ## Table of Contents
 
@@ -27,19 +28,19 @@ The logger comes in different styles, each with its own use case:
 
 - `Time based`: Logs are colorized based on the time of day.
 <figure>
-  <img src="./assets/chroma-logger.png" alt="Time based logger" style="width:100%">
+  <img src="https://github.com/user-attachments/assets/4fd67896-5e61-42a0-8e18-6c67dc1eb464" alt="Time based logger" style="width:100%">
     <figcaption style="text-align: center; font-style: italic;">ChromaLogger.timeBasedLog</figcaption>
 </figure>
 
 - `Level based`: Logs are colorized based on the log level.
 <figure>
-  <img src="./assets/level-logger.png" alt="Default based logger" style="width:100%">
+  <img src="https://github.com/user-attachments/assets/9f3843a6-3be3-41a1-855a-f355178b995f" alt="Default based logger" style="width:100%">
     <figcaption style="text-align: center; font-style: italic;">ChromaLogger.log<figcaption>
 </figure>
 
 - `Default based`: Logs are displayed in the default color.
 <figure>
-  <img src="./assets/default-logger.png" alt="Default based logger" style="width:100%">
+  <img src="https://github.com/user-attachments/assets/f77cbc64-0d68-4576-9670-35231db74587" alt="Default based logger" style="width:100%">
     <figcaption style="text-align: center; font-style: italic;">ChromaLogger.defaultLog<figcaption>
 </figure>
 
