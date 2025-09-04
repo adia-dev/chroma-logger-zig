@@ -5,7 +5,7 @@ const std = @import("std");
 const Time = @import("./time/time.zig").Time;
 const chroma = @import("chroma");
 
-pub fn timeBasedLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), comptime message: []const u8, args: anytype) void {
+pub fn timeBasedLog(comptime level: std.log.Level, comptime scope: @Type(.enum_literal), comptime message: []const u8, args: anytype) void {
     _ = scope;
 
     const timestamp = std.time.timestamp();
@@ -37,7 +37,7 @@ pub fn defaultLog(comptime level: std.log.Level, comptime scope: @Type(.enum_lit
     nosuspend stderr.print(formatted_message ++ "\n", args) catch return;
 }
 
-pub fn log(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), comptime message: []const u8, args: anytype) void {
+pub fn log(comptime level: std.log.Level, comptime scope: @Type(.enum_literal), comptime message: []const u8, args: anytype) void {
     _ = scope;
 
     std.debug.lockStdErr();
