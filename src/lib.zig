@@ -25,7 +25,7 @@ pub fn timeBasedLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLi
     nosuspend stderr.print(formatted_message ++ "\n", args) catch return;
 }
 
-pub fn defaultLog(comptime level: std.log.Level, comptime scope: @Type(.EnumLiteral), comptime message: []const u8, args: anytype) void {
+pub fn defaultLog(comptime level: std.log.Level, comptime scope: @Type(.enum_literal), comptime message: []const u8, args: anytype) void {
     _ = level;
     _ = scope;
 
