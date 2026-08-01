@@ -1,139 +1,266 @@
-# Chroma Logger for Zig
+# Chroma Logger
 
-Chroma Logger is an advanced logging library for Zig projects, designed to bring color and clarity to your application's logging output. Utilizing the Chroma library for colorized output, Chroma Logger enhances the visibility and readability of logs, making debugging and monitoring a breeze.
+[![CI](https://github.com/adia-dev/chroma-logger-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/adia-dev/chroma-logger-zig/actions/workflows/ci.yml)
+[![Zig 0.16.0](https://img.shields.io/badge/Zig-0.16.0-f7a41d?logo=zig&logoColor=white)](https://ziglang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<img width="760" alt="chroma-logger" src="https://github.com/user-attachments/assets/30b21918-6f07-4415-baac-c5ed14676f56">
+Chroma Logger is a configurable, comptime-first ANSI logger for Zig. It plugs
+directly into `std.log`, adds readable timestamps, levels, and scopes, and uses
+[Chroma](https://github.com/adia-dev/chroma-zig) to compile message styles into
+ANSI and plain-text variants without runtime parsing or allocation.
 
-## Table of Contents
+[![Chroma Logger live terminal demo](docs/assets/chroma-logger-demo.gif)](docs/assets/chroma-logger-demo.mp4)
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-  - [Setting Up](#setting-up)
-  - [Logging Example](#logging-example)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+The animation above is a real `zig build run` session captured by VHS. Click it
+for the MP4 version.
 
 ## Features
 
-- **Colorized Logging**: Leverage the full spectrum of ANSI colors, including 256-color and true color support, to differentiate log levels and messages.
-- **Flexible Configuration**: Control log levels and formatting with ease, allowing for detailed debugging sessions or streamlined production logs.
-- **Seamless Integration**: Designed to work effortlessly within the Zig ecosystem, integrating directly into your Zig build system.
+- Drop-in `std.Options.logFn` integration.
+- Typed compile-time configuration, including direct `.zon` imports.
+- Automatic ANSI or plain output with `NO_COLOR` and `CLICOLOR_FORCE` support.
+- Configurable timestamps, fixed UTC offsets, labels, scopes, spacing, and
+  level width.
+- Typed themes for timestamps, scopes, and every log level.
+- Chroma semantic styles and custom formatting grammar inside messages.
+- A deterministic writer API for files, memory buffers, tests, and custom
+  application sinks.
+- Atomic stderr writes protected by Zig's debug-output lock.
+- Clear compile-time failures for malformed logger and Chroma configuration.
+- Tested on Linux, macOS, and Windows with Zig 0.16.0.
 
-The logger comes in different styles, each with its own use case:
+## Installation
 
-- `Time based`: Logs are colorized based on the time of day.
-<figure>
-  <img src="https://github.com/user-attachments/assets/4fd67896-5e61-42a0-8e18-6c67dc1eb464" alt="Time based logger" style="width:100%">
-    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.timeBasedLog</figcaption>
-</figure>
+Add the package to `build.zig.zon`:
 
-- `Level based`: Logs are colorized based on the log level.
-<figure>
-  <img src="https://github.com/user-attachments/assets/9f3843a6-3be3-41a1-855a-f355178b995f" alt="Default based logger" style="width:100%">
-    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.log<figcaption>
-</figure>
-
-- `Default based`: Logs are displayed in the default color.
-<figure>
-  <img src="https://github.com/user-attachments/assets/f77cbc64-0d68-4576-9670-35231db74587" alt="Default based logger" style="width:100%">
-    <figcaption style="text-align: center; font-style: italic;">ChromaLogger.defaultLog<figcaption>
-</figure>
-
-## Getting Started
-
-### Prerequisites
-
-Ensure you have Zig version 0.12.0-dev.2701+d18f52197 or newer installed on your system.
-
-### Installation
-
-1. Fetch the project using `zig fetch`
-
-```bash
-zig fetch --save https://github.com/adia-dev/chroma-logger-zig/archive/refs/tags/v0.1.0.tar.gz
+```sh
+zig fetch --save=chroma_logger https://github.com/adia-dev/chroma-logger-zig/archive/refs/tags/v0.2.0.tar.gz
 ```
 
-Or manually paste this in your `build.zig.zon`
+Import its module in `build.zig`:
 
 ```zig
-.dependencies = .{
-    // other deps...
-    .@"chroma-logger" = .{
-        .url = "https://github.com/adia-dev/chroma-logger-zig/archive/refs/tags/v0.1.0.tar.gz",
-        .hash = "1220359dd4fb54e367f2aa310b2cf75227aec8f05b254ef93f3bafef34ee2aa39d0b",
-    },
-    // ...
-},
+const logger_dep = b.dependency("chroma_logger", .{
+    .target = target,
+    .optimize = optimize,
+});
+exe.root_module.addImport(
+    "chroma-logger",
+    logger_dep.module("chroma-logger"),
+);
 ```
 
-2. **Build the project**:
+Chroma Logger is a Zig module, so there is no runtime library to link.
 
-Using the Zig build system, compile the library and example application:
+## Quick start
 
-```bash
-zig build
-```
-
-This command compiles the static library and an example executable demonstrating the Chroma Logger in action.
-
-## Usage
-
-To integrate Chroma Logger into your Zig project, include it as a package in your `build.zig` file and use it to log messages in various colors and formats:
-
-### Setting Up
-
-In your `build.zig`:
+Create a configured logger type and give its `log` function to `std.log`:
 
 ```zig
 const std = @import("std");
+const chroma_logger = @import("chroma-logger");
 
-pub fn build(b: *std.Build) void {
-    ...
-    const chroma_logger_dep = b.dependency("chroma-logger", .{});
-    ...
-    exe.root_module.addImport("chroma-logger", chroma_logger_dep.module("chroma-logger"));
-    ...
-}
-```
-
-### Logging Example
-
-In your application:
-
-```zig
-const std = @import("std");
-const ChromaLogger = @import("chroma-logger");
-
-// LogFns:
-// - ChromaLogger.defaultLog
-// - ChromaLogger.timeBasedLog
-// - ChromaLogger.log
+const AppLogger = chroma_logger.Logger(.{});
 
 pub const std_options: std.Options = .{
-    .logFn = ChromaLogger.log,
     .log_level = .debug,
+    .logFn = AppLogger.log,
 };
 
-pub fn main() !void {
-    std.log.info("Application started successfully", .{});
-    std.log.err("Failed to load configuration", .{});
+pub fn main() void {
+    std.log.info("Server listening on {#bold,bright-green}{s}{#reset}", .{
+        "http://127.0.0.1:8080",
+    });
+
+    const database_log = std.log.scoped(.database);
+    database_log.warn("Query took {#bright-yellow}{d}ms{#reset}", .{240});
 }
 ```
 
-This example demonstrates how to use Chroma Logger to log messages in various colors and formats. The `log` function from the `ChromaLogger` package is used to log messages, and the `std.log` package is used to log messages in the standard Zig format.
+The default layout looks like this in plain output:
 
-## Contributing
+```text
+12:34:56  INFO   Server listening on http://127.0.0.1:8080
+12:34:56  WARN   [database]  Query took 240ms
+```
 
-We welcome contributions of all kinds from the community! Whether it's adding new features, improving documentation, or fixing bugs, please feel free to make a pull request.
+For the default configuration, `chroma_logger.log` is a shorter equivalent to
+`chroma_logger.Logger(.{}).log`.
+
+## Configure from ZON
+
+Configuration remains typed and compile-time checked when it lives in a file:
+
+```zig
+const AppLogger = chroma_logger.Logger(@import("logger.zon"));
+```
+
+```zig
+// logger.zon
+.{
+    .utc_offset_minutes = 60,
+    .layout = .{
+        .timestamp = .date_time,
+        .scope = .non_default,
+        .separator = "  ",
+    },
+    .labels = .{
+        .err = "FAIL",
+        .info = "READY",
+    },
+    .theme = .{
+        .err = .{
+            .foreground = .{ .rgb = .{ .r = 255, .g = 92, .b = 117 } },
+            .effects = .{.bold},
+        },
+        .info = .{
+            .foreground = .{ .rgb = .{ .r = 80, .g = 250, .b = 123 } },
+            .effects = .{.bold},
+        },
+    },
+    .message_format = .{
+        .styles = .{
+            .{
+                .name = "value",
+                .style = .{
+                    .foreground = .{ .bright = .cyan },
+                    .effects = .{.bold},
+                },
+            },
+        },
+    },
+}
+```
+
+The file is imported by Zig during compilation. Chroma Logger never opens or
+parses a configuration file while the application is running. See
+[`examples/logger.zon`](examples/logger.zon) for the complete demo theme.
+
+## Configuration reference
+
+| Field | Default | Purpose |
+| --- | --- | --- |
+| `color` | `.auto` | Select automatic, always-ANSI, or never-ANSI output |
+| `utc_offset_minutes` | `0` | Apply a fixed offset to UTC timestamps |
+| `layout.timestamp` | `.time` | Use `.none`, `.time`, or `.date_time` |
+| `layout.show_level` | `true` | Include the level label |
+| `layout.scope` | `.non_default` | Use `.never`, `.non_default`, or `.always` |
+| `layout.separator` | `"  "` | Separate timestamp, level, scope, and message |
+| `layout.scope_open` / `scope_close` | `"["` / `"]"` | Delimit scope names |
+| `layout.level_width` | `5` | Right-pad short level labels by UTF-8 byte length |
+| `labels` | Standard names | Rename `ERROR`, `WARN`, `INFO`, and `DEBUG` |
+| `theme` | Built-in palette | Style timestamps, scopes, and levels with typed Chroma styles |
+| `message_format` | Chroma defaults | Configure semantic styles and message grammar |
+
+Fixed UTC offsets are explicit and deterministic. Chroma Logger does not read
+the host timezone database or attempt daylight-saving conversion.
+
+## What happens at comptime?
+
+| Operation | Phase | Runtime allocation or parsing? |
+| --- | --- | --- |
+| Import and type-check logger or ZON configuration | Comptime | No |
+| Validate labels, layout, theme, and Chroma grammar | Comptime | No |
+| Parse Chroma directives in each message | Comptime | No |
+| Generate ANSI and plain message variants | Comptime | No |
+| Generate ANSI fragments for levels, scopes, and timestamps | Comptime | No |
+| Apply `std.log` level filtering | Comptime | No |
+| Read the clock and apply the fixed UTC offset | Runtime | No allocation |
+| Select ANSI or plain output from terminal capability | Runtime | One boolean branch |
+| Substitute Zig formatting arguments | Runtime | Handled by `std.fmt` |
+| Lock and write one complete line | Runtime | Buffered, no allocation |
+
+When timestamps are disabled, the clock read and date conversion are removed
+from that logger at compile time.
+
+## Color behavior
+
+`color = .auto` uses Zig's detected stderr terminal mode. It produces plain
+text for redirection and `NO_COLOR`, honors `CLICOLOR_FORCE`, and enables ANSI
+escape support on modern Windows terminals when possible.
+
+Use `.always` for controlled environments such as a terminal recording, or
+`.never` for logs intended exclusively for files and parsers.
+
+## Custom writers and deterministic tests
+
+Every configured logger exposes `write` in addition to the `std.log` adapter:
+
+```zig
+const TestLogger = chroma_logger.Logger(.{
+    .layout = .{ .timestamp = .none },
+});
+
+var bytes: [256]u8 = undefined;
+var writer: std.Io.Writer = .fixed(&bytes);
+
+try TestLogger.write(
+    &writer,
+    0, // Unix seconds supplied by the caller
+    false, // plain output
+    .info,
+    .database,
+    "connected in {d}ms",
+    .{12},
+);
+```
+
+This path returns writer errors instead of swallowing them. The `std.log`
+adapter follows Zig's conventional `void` signature and ignores stderr write
+failures after safely releasing the lock.
+
+## Migration from 0.1
+
+Version 0.2 is a redesign for Zig 0.16 and Chroma 0.2.
+
+| Previous API | Version 0.2 |
+| --- | --- |
+| `ChromaLogger.log` | `chroma_logger.log` or `Logger(.{}).log` |
+| `ChromaLogger.timeBasedLog` | `Logger(.{ .layout = .{ .timestamp = .date_time } }).log` |
+| `ChromaLogger.defaultLog` | Configure `timestamp`, `show_level`, and `scope` off |
+| `{red}` inside a message | `{#red}` |
+| `{241}` inside a message | `{#fg:241}` |
+| Hard-coded UTC+1 timestamp | Configurable `utc_offset_minutes` |
+
+Scopes are no longer discarded, and automatic mode no longer writes ANSI
+codes into redirected output.
+
+## Live example and video
+
+Run the complete themed example:
+
+```sh
+zig build run
+```
+
+Use `NO_COLOR=1 zig build run` to inspect its precomputed plain variant.
+
+The terminal animation is generated from the real command by
+[`docs/demo.tape`](docs/demo.tape):
+
+```sh
+vhs validate docs/demo.tape
+vhs docs/demo.tape
+```
+
+The tape produces both
+[`chroma-logger-demo.gif`](docs/assets/chroma-logger-demo.gif) and
+[`chroma-logger-demo.mp4`](docs/assets/chroma-logger-demo.mp4).
+
+## Development
+
+Use Zig 0.16.0:
+
+```sh
+zig build
+zig build run
+zig build test
+zig build benchmark -Doptimize=ReleaseFast
+zig fmt --check .
+```
+
+CI repeats tests on Linux, macOS, and Windows and cross-builds common targets.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## Acknowledgments
-
-- [Chroma](https://github.com/adia-dev/chroma-zig) - The underlying library providing colorized output for Chroma Logger.
+Chroma Logger is available under the [MIT License](LICENSE).
