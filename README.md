@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/adia-dev/chroma-logger-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/adia-dev/chroma-logger-zig/actions/workflows/ci.yml)
 [![Zig 0.16.0](https://img.shields.io/badge/Zig-0.16.0-f7a41d?logo=zig&logoColor=white)](https://ziglang.org/)
+[![Release: v0.2.0](https://img.shields.io/badge/release-v0.2.0-brightgreen.svg)](#project-status)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Chroma Logger is a configurable, comptime-first ANSI logger for Zig. It plugs
@@ -13,6 +14,17 @@ ANSI and plain-text variants without runtime parsing or allocation.
 
 The animation above is a real `zig build run` session captured by VHS. Click it
 for the MP4 version.
+
+## Project status
+
+`0.2.0` is the current stable release. It is a good fit for CLI tools,
+development utilities, and applications with modest logging volume.
+
+Chroma Logger is not currently intended for high-throughput or
+latency-sensitive logging workloads. It writes synchronously to locked stderr;
+each enabled record still reads the clock, formats runtime arguments, and
+performs I/O before returning. Comptime rendering removes message-template and
+style parsing from that path, but it does not make the output operation free.
 
 ## Features
 
@@ -172,6 +184,42 @@ the host timezone database or attempt daylight-saving conversion.
 
 When timestamps are disabled, the clock read and date conversion are removed
 from that logger at compile time.
+
+## Current limitations
+
+- Only the synchronous stderr console provider is built in.
+- Log calls are serialized by Zig's debug-output lock.
+- There is no batching, background writer, bounded queue, or backpressure
+  policy.
+- Structured fields and event IDs are not preserved after text formatting.
+- File rotation, JSON Lines, syslog, and multi-provider fan-out are not yet
+  implemented.
+- Timezone support is a fixed UTC offset without daylight-saving or timezone
+  database lookup.
+- Benchmarks currently guard compile-time regressions; they are not evidence
+  that the logger is suitable for performance-critical production workloads.
+
+For very frequent events or strict tail-latency requirements, use a dedicated
+buffered or structured logging system and keep Chroma Logger for human-facing
+console output until the provider work below lands.
+
+## Future 0.3 experiments
+
+These are roadmap ideas, not features included in 0.2. They are planned as
+opt-in experimental APIs for a future `0.3.0-rc.x` series so the stable console
+logger can remain straightforward:
+
+1. A provider pipeline that separates records, formatters, and destinations.
+2. Structured fields, event IDs, and JSON Lines output.
+3. A rotating file provider with explicit flush and failure policies.
+4. Bounded buffering with configurable blocking, dropping, or synchronous
+   fallback behavior.
+5. Diagnostic circular buffering that flushes recent context after an error.
+6. RFC 5424 syslog formatting followed by optional UDP and TCP transports.
+
+Provider topology, message schemas, formats, and buffer capacities should stay
+compile-time configured. File paths, network addresses, open handles, and queue
+state necessarily remain runtime concerns.
 
 ## Color behavior
 
