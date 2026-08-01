@@ -13,7 +13,7 @@ pub const std_options: std.Options = .{
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
-    std.log.info("{#brand}CHROMA LOGGER 0.2 RC{#reset}  live demo", .{});
+    std.log.info("{#brand}CHROMA LOGGER 0.2{#reset}  live demo", .{});
     try pause(io, 550);
 
     std.log.debug("Loaded typed configuration at {#value}comptime{#reset}", .{});
