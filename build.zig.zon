@@ -1,6 +1,6 @@
 .{
     .name = .chroma_logger,
-    .version = "0.2.0",
+    .version = "0.2.0-rc.1",
     .fingerprint = 0x59fdb3f3c96cce27,
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
