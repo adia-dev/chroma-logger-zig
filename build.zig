@@ -1,106 +1,115 @@
 const std = @import("std");
 
-// Although this function looks imperative, note that its job is to
-// declaratively construct a build graph that will be executed by an external
-// runner.
 pub fn build(b: *std.Build) void {
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
-
-    // Standard optimization options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
-    // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
-        .name = "chroma-logger",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = "src/lib.zig" } },
+    const chroma = b.dependency("chroma", .{
         .target = target,
         .optimize = optimize,
-    });
+    }).module("chroma");
 
-    const chroma_module = b
-        .dependency("chroma", .{ .target = target, .optimize = optimize })
-        .module("chroma");
-
-    _ = b.addModule("chroma-logger", .{
-        .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = "src/lib.zig" } },
+    const logger = b.addModule("chroma-logger", .{
+        .root_source_file = b.path("src/lib.zig"),
+        .target = target,
+        .optimize = optimize,
         .imports = &.{
-            .{ .name = "chroma", .module = chroma_module },
+            .{ .name = "chroma", .module = chroma },
         },
     });
 
-    lib.root_module.addImport("chroma", chroma_module);
-
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
-    b.installArtifact(lib);
-
-    const exe = b.addExecutable(.{
-        .name = "chroma-logger",
-        .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = "src/main.zig" } },
+    const example_module = b.createModule(.{
+        .root_source_file = b.path("examples/main.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "chroma-logger", .module = logger },
+        },
     });
 
-    exe.root_module.addImport("chroma", chroma_module);
+    const example = b.addExecutable(.{
+        .name = "chroma-logger-demo",
+        .root_module = example_module,
+    });
+    b.installArtifact(example);
 
-    // This declares intent for the executable to be installed into the
-    // standard location when the user invokes the "install" step (the default
-    // step when running `zig build`).
-    b.installArtifact(exe);
+    const run_command = b.addRunArtifact(example);
+    run_command.step.dependOn(b.getInstallStep());
+    if (b.args) |args| run_command.addArgs(args);
 
-    // This *creates* a Run step in the build graph, to be executed when another
-    // step is evaluated that depends on it. The next line below will establish
-    // such a dependency.
-    const run_cmd = b.addRunArtifact(exe);
+    const run_step = b.step("run", "Run the live logger demo");
+    run_step.dependOn(&run_command.step);
 
-    // By making the run step depend on the install step, it will be run from the
-    // installation directory rather than directly from within the cache directory.
-    // This is not necessary, however, if the application depends on other installed
-    // files, this ensures they will be present and in the expected location.
-    run_cmd.step.dependOn(b.getInstallStep());
+    const library_tests = b.addTest(.{ .root_module = logger });
+    const run_library_tests = b.addRunArtifact(library_tests);
 
-    // This allows the user to pass arguments to the application in the build
-    // command itself, like this: `zig build run -- arg1 arg2 etc`
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
+    const example_tests = b.addTest(.{ .root_module = example_module });
+    const run_example_tests = b.addRunArtifact(example_tests);
 
-    // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build run`
-    // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
+    const test_step = b.step("test", "Run unit and example tests");
+    test_step.dependOn(&run_library_tests.step);
+    test_step.dependOn(&run_example_tests.step);
 
-    // Creates a step for unit testing. This only builds the test executable
-    // but does not run it.
-    const lib_unit_tests = b.addTest(.{
-        .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = "src/lib.zig" } },
+    addCompileErrorTest(
+        b,
+        test_step,
+        logger,
+        target,
+        optimize,
+        "tests/compile_errors/invalid_offset.zig",
+        "error: chroma-logger config: utc_offset_minutes must be between -1439 and 1439",
+    );
+    addCompileErrorTest(
+        b,
+        test_step,
+        logger,
+        target,
+        optimize,
+        "tests/compile_errors/newline_label.zig",
+        "error: chroma-logger config: info label cannot contain a newline",
+    );
+    addCompileErrorTest(
+        b,
+        test_step,
+        logger,
+        target,
+        optimize,
+        "tests/compile_errors/unknown_message_style.zig",
+        "error: chroma: unknown directive 'missing' at byte 2",
+    );
+
+    const benchmark_module = b.createModule(.{
+        .root_source_file = b.path("benchmarks/compile.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "chroma-logger", .module = logger },
+        },
     });
+    const benchmark_compile = b.addTest(.{ .root_module = benchmark_module });
 
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    const benchmark_step = b.step("benchmark", "Compile the logger stress fixture");
+    benchmark_step.dependOn(&benchmark_compile.step);
+}
 
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = "src/main.zig" } },
+fn addCompileErrorTest(
+    b: *std.Build,
+    test_step: *std.Build.Step,
+    logger: *std.Build.Module,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    path: []const u8,
+    expected: []const u8,
+) void {
+    const fixture_module = b.createModule(.{
+        .root_source_file = b.path(path),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "chroma-logger", .module = logger },
+        },
     });
-
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-
-    // Similar to creating the run step earlier, this exposes a `test` step to
-    // the `zig build --help` menu, providing a way for the user to request
-    // running the unit tests.
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
-    test_step.dependOn(&run_exe_unit_tests.step);
+    const fixture = b.addTest(.{ .root_module = fixture_module });
+    fixture.expect_errors = .{ .contains = expected };
+    test_step.dependOn(&fixture.step);
 }
