@@ -10,6 +10,9 @@ directly into `std.log`, adds readable timestamps, levels, and scopes, and uses
 [Chroma](https://github.com/adia-dev/chroma-zig) to compile message styles into
 ANSI and plain-text variants without runtime parsing or allocation.
 
+**AI use:** AI-assisted. AI tools have assisted with development and maintenance;
+the maintainer reviews changes.
+
 [![Chroma Logger live terminal demo](docs/assets/chroma-logger-demo.gif)](docs/assets/chroma-logger-demo.mp4)
 
 The animation above is a real `zig build run` session captured by VHS. Click it
